@@ -1,0 +1,31 @@
+# Open a pull request if any images can be resize
+name: Images
+on:
+  push:
+    branches: [ '*' ]
+jobs:
+  build:
+    name: Resize
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+      - name: Resize images
+        uses: xprilion/img-resizer-inplace@v1
+        with:
+          target: static/images
+          dimensions: 544x544
+      - name: Compress Images
+        id: calibre
+        uses: calibreapp/image-actions@master
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          compressOnly: true
+          pngQuality: '95'
+      - name: Create New Pull Request If Needed
+        uses: peter-evans/create-pull-request@master
+        with:
+          title: Compressed Images
+          branch-suffix: timestamp
+          commit-message: Compressed Images
+          body: ${{ steps.calibre.outputs.markdown }}
